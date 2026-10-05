@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#168a5b">
+<title>Absensi</title>
+<style>
+:root{--green:#168a5b;--green2:#0f6f49;--bg:#f5f7f6;--card:#fff;--text:#17211c;--muted:#718078;--line:#dfe7e2;--danger:#c93636}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+.app{max-width:480px;margin:auto;min-height:100vh;background:var(--bg);box-shadow:0 0 30px #00000010}.splash{position:fixed;inset:0;background:linear-gradient(160deg,#fafffd,#eefbf5 55%,#d8f5e8);color:#083d2b;display:flex;align-items:center;justify-content:center;z-index:20;overflow:hidden}.splash:before,.splash:after{content:"";position:absolute;width:150%;height:180px;left:-25%;bottom:-65px;border-radius:50%;background:linear-gradient(135deg,#0a6f49,#18b879);transform:rotate(-7deg)}.splash:after{bottom:-115px;background:#8de8bf;opacity:.75;transform:rotate(5deg)}.splash.hide{display:none}.splashbox{position:relative;z-index:2;text-align:center;width:88%;max-width:360px}.appmark{width:132px;height:132px;border-radius:34px;margin:0 auto 18px;background:linear-gradient(145deg,#063f2b,#0e8b5b);display:grid;place-items:center;box-shadow:0 18px 35px #0b604022}.appmark svg{width:100px;height:100px}.splash h1{font-size:42px;letter-spacing:-1.5px;margin:0 0 8px;color:#073d2c}.splash p{font-size:16px;line-height:1.45;color:#425d52;margin:0}.splash-start{margin-top:28px;width:100%;border-radius:28px;background:#063f2b;color:#fff;padding:14px 20px;font-size:16px;box-shadow:0 8px 22px #063f2b2b}
+.logo{width:86px;height:86px;border-radius:24px;background:#fff;color:var(--green);display:grid;place-items:center;font-size:42px;font-weight:900;margin:auto;box-shadow:0 12px 35px #0003}.splash h1{text-align:center;margin:18px 0 4px}.splash p{text-align:center;opacity:.8}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:18px 18px 14px}.headrow{display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;margin:0}.sub{font-size:13px;color:var(--muted);margin-top:4px}
+main{padding:18px;padding-bottom:90px}.screen{display:none}.screen.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px #163a2810}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.menu{padding:18px;border-radius:18px;background:#fff;border:1px solid var(--line);cursor:pointer;text-align:left}.menu b{display:block;margin-top:10px}.icon{width:40px;height:40px;border-radius:12px;background:#e7f6ef;color:var(--green);display:grid;place-items:center;font-size:20px}
+label{font-size:13px;font-weight:700;display:block;margin:12px 0 6px}input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;font:inherit}textarea{min-height:82px;resize:vertical}
+button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer}.primary{background:var(--green);color:#fff}.secondary{background:#e9f2ee;color:var(--green2)}.danger{background:#fdeaea;color:var(--danger)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.statuses{display:flex;gap:7px;flex-wrap:wrap}.status input{display:none}.status span{display:block;padding:9px 11px;border:1px solid var(--line);border-radius:999px;font-size:13px;cursor:pointer}.status input:checked+span{background:var(--green);color:white;border-color:var(--green)}
+.item{padding:13px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.itemtop{display:flex;justify-content:space-between;gap:10px}.badge{font-size:11px;padding:5px 8px;border-radius:99px;background:#e8f6ef;color:var(--green2);white-space:nowrap}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:7px 6px calc(7px + env(safe-area-inset-bottom));z-index:10}.nav{background:none;color:var(--muted);font-size:11px;padding:7px 2px}.nav.active{color:var(--green)}.nav div{font-size:19px;margin-bottom:2px}
+.empty{text-align:center;color:var(--muted);padding:22px 8px}.report{font-family:Arial,sans-serif;background:white;padding:22px;border-radius:12px}.report h2{margin-top:0}.report table{width:100%;border-collapse:collapse;font-size:12px}.report th,.report td{border:1px solid #bbb;padding:6px;text-align:left}.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#17211c;color:#fff;padding:11px 15px;border-radius:10px;display:none;z-index:30}
+@media print{body{background:white}.app>header,.bottom,main>section:not(#print),.toast{display:none!important}#print{display:block!important;padding:20px}.report{box-shadow:none;border:0}}
+</style>
+</head>
+<body>
+<div class="splash" id="splash"><div class="splashbox">
+<div class="appmark"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#063f2b"/>
+<g fill="none" stroke="#baffdf" stroke-width="5" stroke-linecap="round">
+<path d="M60 23c-21 0-37 15-37 36 0 13 4 25 10 35"/><path d="M60 31c-16 0-29 11-29 28 0 12 3 22 8 31"/><path d="M60 39c-11 0-21 8-21 20 0 14 4 24 9 32"/><path d="M60 47c-7 0-13 5-13 13 0 13 4 22 8 28"/>
+<path d="M60 23c21 0 37 15 37 36 0 13-4 25-10 35"/><path d="M60 31c16 0 29 11 29 28 0 12-3 22-8 31"/><path d="M60 39c11 0 21 8 21 20 0 14-4 24-9 32"/><path d="M60 47c7 0 13 5 13 13 0 13-4 22-8 28"/><path d="M60 54v29"/></g><circle cx="60" cy="60" r="3.5" fill="#baffdf"/></svg></div>
+<h1>Absensi</h1><p>Catat Kehadiran<br>untuk Kinerja Lebih Baik</p><button class="splash-start" onclick="startApp()">Mulai&nbsp; →</button>
+</div></div>
+<div class="app">
+<header><div class="headrow"><div><h1 id="title">Beranda</h1><div class="sub" id="subtitle">Simpan data langsung di perangkat</div></div><button class="secondary" onclick="show('petugas')">+ Petugas</button></div></header>
+<main>
+<section id="home" class="screen active">
+<div class="card"><b>Selamat datang 👋</b><div class="sub">Pilih menu untuk mulai mencatat absensi.</div></div>
+<div class="grid">
+<button class="menu" onclick="show('petugas')"><div class="icon">👤</div><b>Nama Petugas</b><small class="sub">Kelola petugas</small></button>
+<button class="menu" onclick="show('kehadiran')"><div class="icon">🗓️</div><b>Catatan Kehadiran</b><small class="sub">Status harian</small></button>
+<button class="menu" onclick="show('rincian')"><div class="icon">⏱️</div><b>Rincian</b><small class="sub">Jam & lembur</small></button>
+<button class="menu" onclick="show('rekap')"><div class="icon">📋</div><b>Rekap Laporan</b><small class="sub">Lihat data</small></button>
+</div>
+<div class="card" style="margin-top:14px"><b>Cetak Laporan</b><p class="sub">Buat laporan dari data rincian dan simpan/cetak sebagai PDF.</p><button class="primary" onclick="show('cetak')">Buka Cetak Laporan</button></div>
+</section>
+
+<section id="petugas" class="screen">
+<div class="card"><b>Tambah Nama Petugas</b><label>Nama Petugas</label><input id="nama" placeholder="Contoh: Budi Santoso"><div class="actions"><button class="primary" onclick="addPetugas()">Simpan</button></div></div>
+<div class="card"><b>Daftar Petugas</b><div id="listPetugas"></div></div>
+</section>
+
+<section id="kehadiran" class="screen">
+<div class="card"><b>Catatan Kehadiran</b>
+<label>Tanggal</label><input type="date" id="kTanggal">
+<label>Nama Petugas</label><select id="kPetugas"></select>
+<label>Status Kehadiran</label><div class="statuses">
+<label class="status"><input type="radio" name="status" value="Masuk" checked><span>Masuk</span></label>
+<label class="status"><input type="radio" name="status" value="Cuti"><span>Cuti</span></label>
+<label class="status"><input type="radio" name="status" value="Sakit"><span>Sakit</span></label>
+<label class="status"><input type="radio" name="status" value="Training"><span>Training</span></label>
+<label class="status"><input type="radio" name="status" value="Backup Cabang"><span>Backup Cabang</span></label>
+</div>
+<label>Catatan</label><textarea id="kCatatan" placeholder="Tambahkan catatan..."></textarea>
+<div class="actions"><button class="primary" onclick="addKehadiran()">Simpan Kehadiran</button></div></div>
+<div class="card"><b>Riwayat Kehadiran</b><div id="listKehadiran"></div></div>
+</section>
+
+<section id="rincian" class="screen">
+<div class="card"><b>Rincian Pekerjaan</b>
+<label>Tanggal</label><input type="date" id="rTanggal">
+<label>Nama Petugas</label><select id="rPetugas"></select>
+<label>Kegiatan Tambahan</label>
+<select id="rKegiatan">
+<option value="">-- Tidak ada --</option>
+<option value="Meeting">Meeting</option>
+<option value="Represment Produk">Represment Produk</option>
+<option value="Roleplay">Roleplay</option>
+<option value="Dekor">Dekor</option>
+</select>
+<label>Jam Mulai Kegiatan</label><input type="time" id="rMulai">
+<label>Jam Selesai Kegiatan</label><input type="time" id="rSelesaiKegiatan">
+<label>Jam Selesai Pekerjaan</label><input type="time" id="rSelesai">
+<label>Jam Tutup User ID</label><input type="time" id="rTutup">
+<label>Jam Pulang</label><input type="time" id="rPulang">
+<label>Status</label><div class="statuses"><label class="status"><input type="radio" name="lembur" value="Lembur" checked><span>Lembur</span></label><label class="status"><input type="radio" name="lembur" value="Tidak Lembur"><span>Tidak Lembur</span></label></div>
+<label>Catatan</label><textarea id="rCatatan" placeholder="Tambahkan catatan..."></textarea>
+<div class="actions"><button class="primary" onclick="addRincian()">Simpan Rincian</button></div></div>
+</section>
+
+<section id="rekap" class="screen">
+<div class="card"><b>Filter Rekap</b><label>Dari</label><input type="date" id="fFrom"><label>Sampai</label><input type="date" id="fTo"><label>Petugas</label><select id="fPetugas"><option value="">Semua petugas</option></select><div class="actions"><button class="primary" onclick="renderRekap()">Tampilkan</button></div></div>
+<div class="card"><b>Isi Rekap</b><div id="rekapList"></div></div>
+</section>
+
+<section id="cetak" class="screen">
+<div class="card"><b>Cetak / Simpan Laporan</b><p class="sub">Laporan berisi rincian pekerjaan yang tersimpan di perangkat.</p><label>Dari</label><input type="date" id="pFrom"><label>Sampai</label><input type="date" id="pTo"><label>Petugas</label><select id="pPetugas"><option value="">Semua petugas</option></select><div class="actions"><button class="primary" onclick="previewReport()">Pratinjau Laporan</button><button class="secondary" onclick="window.print()">Cetak / Simpan PDF</button></div></div>
+<div id="print"></div>
+</section>
+</main>
+<nav class="bottom">
+<button class="nav active" data-screen="home" onclick="show('home')"><div>⌂</div>Beranda</button>
+<button class="nav" data-screen="kehadiran" onclick="show('kehadiran')"><div>✓</div>Kehadiran</button>
+<button class="nav" data-screen="rincian" onclick="show('rincian')"><div>⏱</div>Rincian</button>
+<button class="nav" data-screen="rekap" onclick="show('rekap')"><div>▤</div>Rekap</button>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='absensi_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"petugas":[],"kehadiran":[],"rincian":[]}');
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
+function show(id){
+ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');
+ const titles={home:'Beranda',petugas:'Nama Petugas',kehadiran:'Catatan Kehadiran',rincian:'Rincian',rekap:'Rekap Laporan',cetak:'Cetak Laporan'};
+ $('title').textContent=titles[id]; $('subtitle').textContent=id==='home'?'Simpan data langsung di perangkat':'Data tersimpan lokal';
+ document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.screen===id));
+ refresh();
+}
+function opts(id,all=false){let s=all?'<option value="">Semua petugas</option>':'';db.petugas.forEach(p=>s+=`<option value="${p.id}">${esc(p.nama)}</option>`);$(id).innerHTML=s}
+function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function addPetugas(){let n=$('nama').value.trim();if(!n)return toast('Nama petugas wajib diisi');db.petugas.push({id:Date.now(),nama:n});save();$('nama').value='';toast('Petugas tersimpan');refresh()}
+function delPetugas(id){if(confirm('Hapus petugas ini?')){db.petugas=db.petugas.filter(x=>x.id!=id);save();refresh()}}
+function addKehadiran(){if(!db.petugas.length)return toast('Tambahkan petugas dulu');db.kehadiran.push({id:Date.now(),tanggal:$('kTanggal').value,petugas:+$('kPetugas').value,status:document.querySelector('input[name=status]:checked').value,catatan:$('kCatatan').value});save();$('kCatatan').value='';toast('Kehadiran tersimpan');refresh()}
+function addRincian(){if(!db.petugas.length)return toast('Tambahkan petugas dulu');db.rincian.push({id:Date.now(),tanggal:$('rTanggal').value,petugas:+$('rPetugas').value,kegiatan:$('rKegiatan').value,mulaiKegiatan:$('rMulai').value,selesaiKegiatan:$('rSelesaiKegiatan').value,selesai:$('rSelesai').value,tutup:$('rTutup').value,pulang:$('rPulang').value,lembur:document.querySelector('input[name=lembur]:checked').value,catatan:$('rCatatan').value});save();$('rKegiatan').value='';$('rMulai').value='';$('rSelesaiKegiatan').value='';$('rCatatan').value='';toast('Rincian tersimpan');refresh()}
+function pn(id){return db.petugas.find(x=>x.id==id)?.nama||'-'}
+function renderRekap(){let a=db.rincian.filter(x=>(!$('fFrom').value||x.tanggal>=$('fFrom').value)&&(!$('fTo').value||x.tanggal<=$('fTo').value)&&(!$('fPetugas').value||x.petugas==$('fPetugas').value));$('rekapList').innerHTML=a.length?a.map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.lembur)}</span></div><div class="sub">${x.tanggal} · ${x.kegiatan?esc(x.kegiatan)+' · '+(x.mulaiKegiatan||'-')+'–'+(x.selesaiKegiatan||'-')+' · ':''}Selesai ${x.selesai||'-'} · Tutup ${x.tutup||'-'} · Pulang ${x.pulang||'-'}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}</div>`).join(''):'<div class="empty">Belum ada rincian.</div>'}
+function previewReport(){let a=db.rincian.filter(x=>(!$('pFrom').value||x.tanggal>=$('pFrom').value)&&(!$('pTo').value||x.tanggal<=$('pTo').value)&&(!$('pPetugas').value||x.petugas==$('pPetugas').value));$('print').innerHTML=`<div class="report"><h2>Laporan Absensi</h2><p>Periode: ${$('pFrom').value||'-'} s/d ${$('pTo').value||'-'}</p><table><thead><tr><th>Tanggal</th><th>Petugas</th><th>Kegiatan Tambahan</th><th>Mulai</th><th>Selesai Kegiatan</th><th>Selesai Pekerjaan</th><th>Tutup User ID</th><th>Pulang</th><th>Status</th><th>Catatan</th></tr></thead><tbody>${a.map(x=>`<tr><td>${x.tanggal}</td><td>${esc(pn(x.petugas))}</td><td>${esc(x.kegiatan||'-')}</td><td>${x.mulaiKegiatan||'-'}</td><td>${x.selesaiKegiatan||'-'}</td><td>${x.selesai||'-'}</td><td>${x.tutup||'-'}</td><td>${x.pulang||'-'}</td><td>${esc(x.lembur)}</td><td>${esc(x.catatan)}</td></tr>`).join('')}</tbody></table><p>Total rincian: <b>${a.length}</b></p></div>`}
+function refresh(){
+ opts('kPetugas');opts('rPetugas');opts('fPetugas',true);opts('pPetugas',true);
+ $('listPetugas').innerHTML=db.petugas.length?db.petugas.map(p=>`<div class="item itemtop"><span>${esc(p.nama)}</span><button class="danger" onclick="delPetugas(${p.id})">Hapus</button></div>`).join(''):'<div class="empty">Belum ada petugas.</div>';
+ $('listKehadiran').innerHTML=db.kehadiran.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.status)}</span></div><div class="sub">${x.tanggal}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}</div>`).join('')||'<div class="empty">Belum ada catatan.</div>';
+ if(!$('kTanggal').value)$('kTanggal').value=today();if(!$('rTanggal').value)$('rTanggal').value=today();
+ renderRekap();
+}
+function startApp(){ $('splash').classList.add('hide'); } window.addEventListener('load',()=>{refresh()});
+</script>
+</body>
+</html>
