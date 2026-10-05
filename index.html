@@ -19,7 +19,7 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 .item{padding:13px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.itemtop{display:flex;justify-content:space-between;gap:10px}.badge{font-size:11px;padding:5px 8px;border-radius:99px;background:#e8f6ef;color:var(--green2);white-space:nowrap}
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:7px 6px calc(7px + env(safe-area-inset-bottom));z-index:10}.nav{background:none;color:var(--muted);font-size:11px;padding:7px 2px}.nav.active{color:var(--green)}.nav div{font-size:19px;margin-bottom:2px}
 .empty{text-align:center;color:var(--muted);padding:22px 8px}.report{font-family:Arial,sans-serif;background:white;padding:22px;border-radius:12px}.report h2{margin-top:0}.report table{width:100%;border-collapse:collapse;font-size:12px}.report th,.report td{border:1px solid #bbb;padding:6px;text-align:left}.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#17211c;color:#fff;padding:11px 15px;border-radius:10px;display:none;z-index:30}
-@media print{body{background:white}.app>header,.bottom,main>section:not(#print),.toast{display:none!important}#print{display:block!important;padding:20px}.report{box-shadow:none;border:0}}
+@media print{body{background:white!important;margin:0}.app>header,.bottom,main>section:not(#cetak),.toast{display:none!important}main{display:block!important}#cetak{display:block!important}#cetak>.card{display:none!important}#print{display:block!important;padding:12mm!important}.report{display:block!important;box-shadow:none;border:0;padding:0;background:#fff}.report table{font-size:9px} .report th,.report td{padding:4px}}
 </style>
   <link rel="icon" type="image/svg+xml" href="icon-absensi.svg">
   <link rel="apple-touch-icon" href="icon-absensi.svg">
@@ -126,7 +126,7 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 </section>
 
 <section id="cetak" class="screen">
-<div class="card"><b>Cetak / Simpan Laporan</b><p class="sub">Laporan berisi rincian pekerjaan yang tersimpan di perangkat.</p><label>Dari</label><input type="date" id="pFrom"><label>Sampai</label><input type="date" id="pTo"><label>Petugas</label><select id="pPetugas"><option value="">Semua petugas</option></select><div class="actions"><button class="primary" onclick="previewReport()">Pratinjau Laporan</button><button class="secondary" onclick="window.print()">Cetak / Simpan PDF</button></div></div>
+<div class="card"><b>Cetak / Simpan Laporan</b><p class="sub">Laporan berisi rincian pekerjaan yang tersimpan di perangkat.</p><label>Dari</label><input type="date" id="pFrom"><label>Sampai</label><input type="date" id="pTo"><label>Petugas</label><select id="pPetugas"><option value="">Semua petugas</option></select><div class="actions"><button class="primary" onclick="previewReport()">Pratinjau Laporan</button><button class="secondary" onclick="printReport()">Cetak / Simpan PDF</button></div></div>
 <div id="print"></div>
 </section>
 </main>
@@ -219,6 +219,10 @@ function delPooling(id){
 }
 function renderRekap(){let a=db.rincian.filter(x=>(!$('fFrom').value||x.tanggal>=$('fFrom').value)&&(!$('fTo').value||x.tanggal<=$('fTo').value)&&(!$('fPetugas').value||x.petugas==$('fPetugas').value));$('rekapList').innerHTML=a.length?a.map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.lembur)}</span></div><div class="sub">${x.tanggal} · ${x.kegiatan?esc(x.kegiatan)+' · '+(x.mulaiKegiatan||'-')+'–'+(x.selesaiKegiatan||'-')+' · ':''}Selesai ${x.selesai||'-'} · Tutup ${x.tutup||'-'} · Pulang ${x.pulang||'-'}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}</div>`).join(''):'<div class="empty">Belum ada rincian.</div>'}
 function previewReport(){let a=db.rincian.filter(x=>(!$('pFrom').value||x.tanggal>=$('pFrom').value)&&(!$('pTo').value||x.tanggal<=$('pTo').value)&&(!$('pPetugas').value||x.petugas==$('pPetugas').value));$('print').innerHTML=`<div class="report"><h2>Laporan Absensi</h2><p>Periode: ${$('pFrom').value||'-'} s/d ${$('pTo').value||'-'}</p><table><thead><tr><th>Tanggal</th><th>Petugas</th><th>Kegiatan Tambahan</th><th>Mulai</th><th>Selesai Kegiatan</th><th>Selesai Pekerjaan</th><th>Tutup User ID</th><th>Pulang</th><th>Status</th><th>Catatan</th></tr></thead><tbody>${a.map(x=>`<tr><td>${x.tanggal}</td><td>${esc(pn(x.petugas))}</td><td>${esc(x.kegiatan||'-')}</td><td>${x.mulaiKegiatan||'-'}</td><td>${x.selesaiKegiatan||'-'}</td><td>${x.selesai||'-'}</td><td>${x.tutup||'-'}</td><td>${x.pulang||'-'}</td><td>${esc(x.lembur)}</td><td>${esc(x.catatan)}</td></tr>`).join('')}</tbody></table><p>Total rincian: <b>${a.length}</b></p></div>`}
+function printReport(){
+  previewReport();
+  setTimeout(()=>window.print(),120);
+}
 function refresh(){
  opts('kPetugas');opts('rPetugas');opts('fPetugas',true);opts('pPetugas',true);opts('cNama');
  $('listPetugas').innerHTML=db.petugas.length?db.petugas.map(p=>`<div class="item itemtop"><span>${esc(p.nama)}</span><button class="danger" onclick="delPetugas(${p.id})">Hapus</button></div>`).join(''):'<div class="empty">Belum ada petugas.</div>';
