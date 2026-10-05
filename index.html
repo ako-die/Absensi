@@ -24,7 +24,12 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
   <link rel="icon" type="image/svg+xml" href="icon-absensi.svg">
   <link rel="apple-touch-icon" href="icon-absensi.svg">
   <link rel="manifest" href="manifest.json">
-</head>
+<style id="edit-delete-style">
+.item-actions{display:flex;gap:8px;margin-top:10px}
+.item-actions button{border:0;border-radius:10px;padding:8px 14px;font-weight:700}
+.btn-edit{background:#e8f5ef;color:#087b4b}
+.btn-delete{background:#fff0f0;color:#b42318}
+</style></head>
 <body>
 <div class="splash" id="splash"><div class="splashbox">
 <div class="appmark"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#063f2b"/>
@@ -65,7 +70,7 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 <label class="status"><input type="radio" name="status" value="Backup Cabang"><span>Backup Cabang</span></label>
 </div>
 <label>Catatan</label><textarea id="kCatatan" placeholder="Tambahkan catatan..."></textarea>
-<div class="actions"><button class="primary" onclick="addKehadiran()">Simpan Kehadiran</button></div></div>
+<div class="actions"><button id="btnKehadiran" class="primary" onclick="addKehadiran()">Simpan Kehadiran</button></div></div>
 <div class="card"><b>Riwayat Kehadiran</b><div id="listKehadiran"></div></div>
 </section>
 
@@ -88,7 +93,8 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 <label>Jam Pulang</label><input type="time" id="rPulang">
 <label>Status</label><div class="statuses"><label class="status"><input type="radio" name="lembur" value="Lembur" checked><span>Lembur</span></label><label class="status"><input type="radio" name="lembur" value="Tidak Lembur"><span>Tidak Lembur</span></label></div>
 <label>Catatan</label><textarea id="rCatatan" placeholder="Tambahkan catatan..."></textarea>
-<div class="actions"><button class="primary" onclick="addRincian()">Simpan Rincian</button></div></div>
+<div class="actions"><button id="btnRincian" class="primary" onclick="addRincian()">Simpan Rincian</button></div></div>
+<div class="card"><b>Riwayat Rincian</b><div id="listRincian"></div></div>
 </section>
 
 <section id="cuti" class="screen">
@@ -97,7 +103,7 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 <label>Nama</label><select id="cNama"></select>
 <label>Tanggal Cuti</label><input type="date" id="cTanggalCuti">
 <label>Alasan / Keterangan Cuti</label><textarea id="cKeterangan" placeholder="Input alasan atau keterangan cuti..."></textarea>
-<div class="actions"><button class="primary" onclick="addCuti()">Simpan Rencana Cuti</button></div>
+<div class="actions"><button id="btnCuti" class="primary" onclick="addCuti()">Simpan Rencana Cuti</button></div>
 </div>
 <div class="card"><b>Daftar Rencana Cuti</b><div id="listCuti"></div></div>
 
@@ -138,6 +144,7 @@ let db=JSON.parse(localStorage.getItem(KEY)||'{"petugas":[],"kehadiran":[],"rinc
 db.cuti=db.cuti||[]; db.pooling=db.pooling||[];
 const $=id=>document.getElementById(id);
 const today=()=>new Date().toISOString().slice(0,10);
+let editState={type:null,id:null};
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
 function show(id){
@@ -151,18 +158,57 @@ function opts(id,all=false){let s=all?'<option value="">Semua petugas</option>':
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function addPetugas(){let n=$('nama').value.trim();if(!n)return toast('Nama petugas wajib diisi');db.petugas.push({id:Date.now(),nama:n});save();$('nama').value='';toast('Petugas tersimpan');refresh()}
 function delPetugas(id){if(confirm('Hapus petugas ini?')){db.petugas=db.petugas.filter(x=>x.id!=id);save();refresh()}}
-function addKehadiran(){if(!db.petugas.length)return toast('Tambahkan petugas dulu');db.kehadiran.push({id:Date.now(),tanggal:$('kTanggal').value,petugas:+$('kPetugas').value,status:document.querySelector('input[name=status]:checked').value,catatan:$('kCatatan').value});save();$('kCatatan').value='';toast('Kehadiran tersimpan');refresh()}
-function addRincian(){if(!db.petugas.length)return toast('Tambahkan petugas dulu');db.rincian.push({id:Date.now(),tanggal:$('rTanggal').value,petugas:+$('rPetugas').value,kegiatan:$('rKegiatan').value,mulaiKegiatan:$('rMulai').value,selesaiKegiatan:$('rSelesaiKegiatan').value,selesai:$('rSelesai').value,tutup:$('rTutup').value,pulang:$('rPulang').value,lembur:document.querySelector('input[name=lembur]:checked').value,catatan:$('rCatatan').value});save();$('rKegiatan').value='';$('rMulai').value='';$('rSelesaiKegiatan').value='';$('rCatatan').value='';toast('Rincian tersimpan');refresh()}
+function addKehadiran(){
+ if(!db.petugas.length)return toast('Tambahkan petugas dulu');
+ const item={tanggal:$('kTanggal').value,petugas:+$('kPetugas').value,status:document.querySelector('input[name=status]:checked').value,catatan:$('kCatatan').value};
+ if(editState.type==='kehadiran'){
+   const i=db.kehadiran.findIndex(x=>x.id===editState.id); if(i>=0) db.kehadiran[i]={...db.kehadiran[i],...item};
+   editState={type:null,id:null}; $('btnKehadiran').textContent='Simpan Kehadiran'; toast('Kehadiran diperbarui');
+ }else{db.kehadiran.push({id:Date.now(),...item});toast('Kehadiran tersimpan')}
+ save(); $('kCatatan').value=''; refresh();
+}
+function addRincian(){
+ if(!db.petugas.length)return toast('Tambahkan petugas dulu');
+ const item={tanggal:$('rTanggal').value,petugas:+$('rPetugas').value,kegiatan:$('rKegiatan').value,mulaiKegiatan:$('rMulai').value,selesaiKegiatan:$('rSelesaiKegiatan').value,selesai:$('rSelesai').value,tutup:$('rTutup').value,pulang:$('rPulang').value,lembur:document.querySelector('input[name=lembur]:checked').value,catatan:$('rCatatan').value};
+ if(editState.type==='rincian'){
+   const i=db.rincian.findIndex(x=>x.id===editState.id); if(i>=0) db.rincian[i]={...db.rincian[i],...item};
+   editState={type:null,id:null}; $('btnRincian').textContent='Simpan Rincian'; toast('Rincian diperbarui');
+ }else{db.rincian.push({id:Date.now(),...item});toast('Rincian tersimpan')}
+ save(); $('rKegiatan').value='';$('rMulai').value='';$('rSelesaiKegiatan').value='';$('rSelesai').value='';$('rTutup').value='';$('rPulang').value='';$('rCatatan').value=''; refresh();
+}
 function pn(id){return db.petugas.find(x=>x.id==id)?.nama||'-'}
 function addCuti(){
-  if(!db.petugas.length)return toast('Tambahkan petugas dulu');
-  if(!$('cTanggal').value||!$('cNama').value||!$('cTanggalCuti').value)return toast('Lengkapi data rencana cuti');
-  db.cuti.push({id:Date.now(),tanggal:$('cTanggal').value,nama:+$('cNama').value,tanggalCuti:$('cTanggalCuti').value,keterangan:$('cKeterangan').value});
-  save(); $('cKeterangan').value=''; toast('Rencana cuti tersimpan'); refresh();
+ if(!db.petugas.length)return toast('Tambahkan petugas dulu');
+ if(!$('cTanggal').value||!$('cNama').value||!$('cTanggalCuti').value)return toast('Lengkapi data rencana cuti');
+ const item={tanggal:$('cTanggal').value,nama:+$('cNama').value,tanggalCuti:$('cTanggalCuti').value,keterangan:$('cKeterangan').value};
+ if(editState.type==='cuti'){
+   const i=db.cuti.findIndex(x=>x.id===editState.id); if(i>=0) db.cuti[i]={...db.cuti[i],...item};
+   editState={type:null,id:null}; $('btnCuti').textContent='Simpan Rencana Cuti'; toast('Rencana cuti diperbarui');
+ }else{db.cuti.push({id:Date.now(),...item});toast('Rencana cuti tersimpan')}
+ save(); $('cKeterangan').value=''; refresh();
 }
 function delCuti(id){
   if(confirm('Hapus rencana cuti ini?')){db.cuti=db.cuti.filter(x=>x.id!=id);save();refresh();toast('Rencana cuti dihapus')}
 }
+
+function editKehadiran(id){
+ const x=db.kehadiran.find(v=>v.id===id); if(!x)return;
+ editState={type:'kehadiran',id}; $('kTanggal').value=x.tanggal; $('kPetugas').value=x.petugas;
+ document.querySelectorAll('input[name=status]').forEach(r=>r.checked=r.value===x.status);
+ $('kCatatan').value=x.catatan||''; $('btnKehadiran').textContent='Update Kehadiran'; show('kehadiran'); window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteKehadiran(id){if(confirm('Hapus catatan kehadiran ini?')){db.kehadiran=db.kehadiran.filter(x=>x.id!==id);save();refresh();toast('Kehadiran dihapus')}}
+function editRincian(id){
+ const x=db.rincian.find(v=>v.id===id); if(!x)return;
+ editState={type:'rincian',id}; $('rTanggal').value=x.tanggal; $('rPetugas').value=x.petugas; $('rKegiatan').value=x.kegiatan||''; $('rMulai').value=x.mulaiKegiatan||''; $('rSelesaiKegiatan').value=x.selesaiKegiatan||''; $('rSelesai').value=x.selesai||''; $('rTutup').value=x.tutup||''; $('rPulang').value=x.pulang||'';
+ document.querySelectorAll('input[name=lembur]').forEach(r=>r.checked=r.value===x.lembur); $('rCatatan').value=x.catatan||''; $('btnRincian').textContent='Update Rincian'; show('rincian'); window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteRincian(id){if(confirm('Hapus rincian ini?')){db.rincian=db.rincian.filter(x=>x.id!==id);save();refresh();toast('Rincian dihapus')}}
+function editCuti(id){
+ const x=db.cuti.find(v=>v.id===id); if(!x)return;
+ editState={type:'cuti',id}; $('cTanggal').value=x.tanggal; $('cNama').value=x.nama; $('cTanggalCuti').value=x.tanggalCuti; $('cKeterangan').value=x.keterangan||''; $('btnCuti').textContent='Update Rencana Cuti'; show('cuti'); window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function addPooling(){
   if(!$('poolTanggal').value)return toast('Tanggal input wajib diisi');
   db.pooling.push({id:Date.now(),tanggal:$('poolTanggal').value,status:document.querySelector('input[name=poolStatus]:checked').value,catatan:$('poolCatatan').value});
@@ -176,12 +222,13 @@ function previewReport(){let a=db.rincian.filter(x=>(!$('pFrom').value||x.tangga
 function refresh(){
  opts('kPetugas');opts('rPetugas');opts('fPetugas',true);opts('pPetugas',true);opts('cNama');
  $('listPetugas').innerHTML=db.petugas.length?db.petugas.map(p=>`<div class="item itemtop"><span>${esc(p.nama)}</span><button class="danger" onclick="delPetugas(${p.id})">Hapus</button></div>`).join(''):'<div class="empty">Belum ada petugas.</div>';
- $('listKehadiran').innerHTML=db.kehadiran.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.status)}</span></div><div class="sub">${x.tanggal}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}</div>`).join('')||'<div class="empty">Belum ada catatan.</div>';
- if(!$('kTanggal').value)$('kTanggal').value=today();if(!$('rTanggal').value)$('rTanggal').value=today();
+ $('listKehadiran').innerHTML=db.kehadiran.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.status)}</span></div><div class="sub">${x.tanggal}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="item-actions"><button class="btn-edit" onclick="editKehadiran(${x.id})">Edit</button><button class="btn-delete" onclick="deleteKehadiran(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada catatan.</div>';
+ if(!$('kTanggal').value).value)$('kTanggal').value=today();if(!$('rTanggal').value)$('rTanggal').value=today();
 if($('cTanggal') && !$('cTanggal').value)$('cTanggal').value=today();
 if($('poolTanggal') && !$('poolTanggal').value)$('poolTanggal').value=today();
-$('listCuti').innerHTML=db.cuti.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.nama))}</b><span class="badge">Cuti ${x.tanggalCuti}</span></div><div class="sub">Tanggal input: ${x.tanggal}</div>${x.keterangan?`<small>${esc(x.keterangan)}</small>`:''}<div class="actions"><button class="danger" onclick="delCuti(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada rencana cuti.</div>';
-$('listPooling').innerHTML=db.pooling.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${x.tanggal}</b><span class="badge">${esc(x.status)}</span></div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="actions"><button class="danger" onclick="delPooling(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada pemesanan pooling.</div>';
+$('listCuti').innerHTML=db.cuti.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.nama))}</b><span class="badge">Cuti ${x.tanggalCuti}</span></div><div class="sub">Tanggal input: ${x.tanggal}</div>${x.keterangan?`<small>${esc(x.keterangan)}</small>`:''}<div class="item-actions"><button class="btn-edit" onclick="editCuti(${x.id})">Edit</button><button class="btn-delete" onclick="delCuti(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada rencana cuti.</div>';
+$('listPooling')).innerHTML=db.pooling.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${x.tanggal}</b><span class="badge">${esc(x.status)}</span></div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="actions"><button class="danger" onclick="delPooling(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada pemesanan pooling.</div>';
+ $('listRincian').innerHTML=db.rincian.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.lembur)}</span></div><div class="sub">${x.tanggal} · ${x.kegiatan?esc(x.kegiatan)+' · '+(x.mulaiKegiatan||'-')+'–'+(x.selesaiKegiatan||'-')+' · ':''}Selesai ${x.selesai||'-'} · Tutup ${x.tutup||'-'} · Pulang ${x.pulang||'-'}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="item-actions"><button class="btn-edit" onclick="editRincian(${x.id})">Edit</button><button class="btn-delete" onclick="deleteRincian(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada rincian.</div>';
  renderRekap();
 }
 function startApp(){ $('splash').classList.add('hide'); } window.addEventListener('load',()=>{refresh()});
