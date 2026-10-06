@@ -29,14 +29,27 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 .item-actions button{border:0;border-radius:10px;padding:8px 14px;font-weight:700}
 .btn-edit{background:#e8f5ef;color:#087b4b}
 .btn-delete{background:#fff0f0;color:#b42318}
-</style></head>
+</style>
+<style id="created-by-style">
+.created-by{
+  margin: 8px 0 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #6f807b;
+}
+</style>
+
+</head>
 <body>
 <div class="splash" id="splash"><div class="splashbox">
 <div class="appmark"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#063f2b"/>
 <g fill="none" stroke="#baffdf" stroke-width="5" stroke-linecap="round">
 <path d="M60 23c-21 0-37 15-37 36 0 13 4 25 10 35"/><path d="M60 31c-16 0-29 11-29 28 0 12 3 22 8 31"/><path d="M60 39c-11 0-21 8-21 20 0 14 4 24 9 32"/><path d="M60 47c-7 0-13 5-13 13 0 13 4 22 8 28"/>
 <path d="M60 23c21 0 37 15 37 36 0 13-4 25-10 35"/><path d="M60 31c16 0 29 11 29 28 0 12-3 22-8 31"/><path d="M60 39c11 0 21 8 21 20 0 14-4 24-9 32"/><path d="M60 47c7 0 13 5 13 13 0 13-4 22-8 28"/><path d="M60 54v29"/></g><circle cx="60" cy="60" r="3.5" fill="#baffdf"/></svg></div>
-<h1>Absensi</h1><p>Catat Kehadiran<br>untuk Kinerja Lebih Baik</p><button type="button" class="splash-start" onclick="document.getElementById('splash').classList.add('hide')">Mulai&nbsp; →</button>
+<h1>Absensi</h1><p>Catat Kehadiran<br>untuk Kinerja Lebih Baik</p><div class="created-by">Created by DEE</div>
+<button type="button" class="splash-start" onclick="document.getElementById('splash').classList.add('hide')">Mulai&nbsp; →</button>
 </div></div>
 <div class="app">
 <header><div class="headrow"><div><h1 id="title">Beranda</h1><div class="sub" id="subtitle">Simpan data langsung di perangkat</div></div><button class="secondary" onclick="show('petugas')">+ Petugas</button></div></header>
