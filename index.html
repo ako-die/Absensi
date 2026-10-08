@@ -41,6 +41,30 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 }
 </style>
 
+
+<style id="pool-result-style">
+.pool-note{margin:10px 0 4px;padding:12px 14px;border-radius:14px;background:#eef8f4;color:#5f716c;font-size:13px;line-height:1.5}
+.pool-result-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pool-result-actions button{border:0;border-radius:12px;padding:9px 14px;font-weight:700;cursor:pointer}
+.pool-approve{background:#e8f5ef;color:#087b4b}
+.pool-reject{background:#fff0f0;color:#b42318}
+</style>
+
+<style id="pooling-result-active-style">
+.pool-result-actions button.active{
+  outline:3px solid rgba(10,155,85,.18);
+  transform:translateY(-1px);
+}
+.pool-result-actions .pool-approve.active{
+  background:#128b5c;
+  color:#fff;
+}
+.pool-result-actions .pool-reject.active{
+  background:#c94b4b;
+  color:#fff;
+}
+</style>
+
 </head>
 <body>
 <div class="splash" id="splash"><div class="splashbox">
@@ -122,15 +146,18 @@ button{border:0;border-radius:11px;padding:12px 15px;font:inherit;font-weight:70
 
 <div class="card"><b>Pemesanan Pooling</b>
 <label>Tanggal Input</label><input type="date" id="poolTanggal">
-<label>Status</label>
-<div class="statuses">
-<label class="status"><input type="radio" name="poolStatus" value="Disetujui" checked><span>Disetujui</span></label>
-<label class="status"><input type="radio" name="poolStatus" value="Ditolak"><span>Ditolak</span></label>
-</div>
+<div class="pool-note">Status pemesanan ditentukan pada menu <b>Hasil Pemesanan</b> di bawah Riwayat.</div>
 <label>Catatan</label><textarea id="poolCatatan" placeholder="Input catatan..."></textarea>
 <div class="actions"><button class="primary" onclick="addPooling()">Simpan Pemesanan Pooling</button></div>
 </div>
-<div class="card"><b>Riwayat Pemesanan Pooling</b><div id="listPooling"></div></div>
+<div class="card"><b>Hasil Pemesanan</b>
+<p class="sub">Tentukan hasil pemesanan pooling untuk setiap pengajuan.</p>
+<div id="hasilPooling"></div>
+</div>
+<div class="card"><b>Riwayat Pemesanan Pooling</b>
+<p class="sub">Riwayat ini menampilkan status dari Hasil Pemesanan.</p>
+<div id="listPooling"></div>
+</div>
 </section>
 
 <section id="rekap" class="screen">
@@ -224,8 +251,16 @@ function editCuti(id){
 
 function addPooling(){
   if(!$('poolTanggal').value)return toast('Tanggal input wajib diisi');
-  db.pooling.push({id:Date.now(),tanggal:$('poolTanggal').value,status:document.querySelector('input[name=poolStatus]:checked').value,catatan:$('poolCatatan').value});
+  db.pooling.push({id:Date.now(),tanggal:$('poolTanggal').value,status:'Menunggu',catatan:$('poolCatatan').value});
   save(); $('poolCatatan').value=''; toast('Pemesanan pooling tersimpan'); refresh();
+}
+function setPoolingStatus(id,status){
+  const x=db.pooling.find(v=>v.id==id);
+  if(!x)return;
+  x.status=status;
+  save();
+  refresh();
+  toast('Hasil pemesanan: '+status);
 }
 function delPooling(id){
   if(confirm('Hapus pemesanan pooling ini?')){db.pooling=db.pooling.filter(x=>x.id!=id);save();refresh();toast('Pemesanan pooling dihapus')}
@@ -244,7 +279,8 @@ function refresh(){
 if($('cTanggal') && !$('cTanggal').value)$('cTanggal').value=today();
 if($('poolTanggal') && !$('poolTanggal').value)$('poolTanggal').value=today();
 $('listCuti').innerHTML=db.cuti.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.nama))}</b><span class="badge">Cuti ${x.tanggalCuti}</span></div><div class="sub">Tanggal input: ${x.tanggal}</div>${x.keterangan?`<small>${esc(x.keterangan)}</small>`:''}<div class="item-actions"><button class="btn-edit" onclick="editCuti(${x.id})">Edit</button><button class="btn-delete" onclick="delCuti(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada rencana cuti.</div>';
-$('listPooling').innerHTML=db.pooling.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${x.tanggal}</b><span class="badge">${esc(x.status)}</span></div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="actions"><button class="danger" onclick="delPooling(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada pemesanan pooling.</div>';
+$('listPooling').innerHTML=db.pooling.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${x.tanggal}</b><span class="badge">${esc(x.status||'Menunggu')}</span></div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="actions"><button class="danger" onclick="delPooling(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada pemesanan pooling.</div>';
+$('hasilPooling').innerHTML=db.pooling.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${x.tanggal}</b><span class="badge">${esc(x.status||'Menunggu')}</span></div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="pool-result-actions"><button class="pool-approve ${x.status==='Disetujui'?'active':''}" onclick="setPoolingStatus(${x.id},'Disetujui')">Disetujui</button><button class="pool-reject ${x.status==='Ditolak'?'active':''}" onclick="setPoolingStatus(${x.id},'Ditolak')">Ditolak</button></div></div>`).join('')||'<div class="empty">Belum ada hasil pemesanan.</div>';
  $('listRincian').innerHTML=db.rincian.slice().reverse().map(x=>`<div class="item"><div class="itemtop"><b>${esc(pn(x.petugas))}</b><span class="badge">${esc(x.lembur)}</span></div><div class="sub">${x.tanggal} · ${x.kegiatan?esc(x.kegiatan)+' · '+(x.mulaiKegiatan||'-')+'–'+(x.selesaiKegiatan||'-')+' · ':''}Selesai ${x.selesai||'-'} · Tutup ${x.tutup||'-'} · Pulang ${x.pulang||'-'}</div>${x.catatan?`<small>${esc(x.catatan)}</small>`:''}<div class="item-actions"><button class="btn-edit" onclick="editRincian(${x.id})">Edit</button><button class="btn-delete" onclick="deleteRincian(${x.id})">Hapus</button></div></div>`).join('')||'<div class="empty">Belum ada rincian.</div>';
  renderRekap();
 }
